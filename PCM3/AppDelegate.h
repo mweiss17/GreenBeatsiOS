@@ -15,10 +15,6 @@
 @property (strong, nonatomic) UIWindow *window;
 @property int j;
 @property (nonatomic, retain) NSDate *requestStart;
-@property (nonatomic, retain) NSArray *serverTimestamp;
-@property (nonatomic, retain) NSString* serverTimestampString;
-@property (nonatomic, retain) NSDate* serverTimestampDate;
-@property NSMutableArray *serverTimestampsArray;
 @property (strong, nonatomic) IBOutlet UIProgressView *progress;
 @property NSTimeInterval serverTimeSinceEpoch;
 @property NSTimeInterval requestDuration;
@@ -26,4 +22,5 @@
 @property NSMutableArray *durations;
 @property Boolean returned;
 @property NSDate* stopWatch;
+@property NSNumber* serverTime;
 @end

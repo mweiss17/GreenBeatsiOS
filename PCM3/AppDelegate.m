@@ -20,7 +20,6 @@
 	AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryDefaultToSpeaker, sizeof(doChangeDefaultRoute), &doChangeDefaultRoute);
 
 	self.durations = [[NSMutableArray alloc] initWithCapacity:15];
-	self.serverTimestampsArray = [[NSMutableArray alloc] initWithCapacity:15];
 	for(int i = 0; i < 10; i++){
 		[self calculateNetworkLatency2];
 	}
@@ -34,26 +33,16 @@
 {
 	self.requestStart = [NSDate date];
 	NSURLSessionConfiguration *defaultConfigObject = [NSURLSessionConfiguration defaultSessionConfiguration];
-	NSURL * url = [NSURL URLWithString:@"http://54.187.240.141/"];
+	NSURL * url = [NSURL URLWithString:@"http://54.69.71.254:8080/timeStamp/"];
 	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
 	[request setURL: url];
 	[request setHTTPMethod:@"GET"];
 	NSData *returnData = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
 	NSString *str = [[NSString alloc] initWithData:returnData encoding:NSUTF8StringEncoding];
-	self.serverTimestamp = [NSJSONSerialization JSONObjectWithData:returnData
-														   options:kNilOptions
-															 error:nil];
-
-	for(NSDictionary *item in _serverTimestamp) {
-		self.serverTimestampString = [item valueForKey:@"timeStamp"];
-	}
-	self.serverTimestampString = [self.serverTimestampString stringByReplacingOccurrencesOfString: @"T" withString:@" "];
-
-	NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-	[formatter setDateFormat:@"yyyy-MM-dd HH:mm:ss.SSSSSS"];
-	self.serverTimestampDate = [formatter dateFromString:self.serverTimestampString];
-	self.serverTimeSinceEpoch = [self.serverTimestampDate timeIntervalSince1970];
-	[self.serverTimestampsArray addObject: [[NSNumber alloc] initWithDouble:self.serverTimeSinceEpoch]];
+	NSLog(str);
+	NSNumberFormatter * f = [[NSNumberFormatter alloc] init];
+	[f setNumberStyle:NSNumberFormatterDecimalStyle];
+	self.serverTime = [f numberFromString:str];
 	self.requestDuration = [[NSDate date] timeIntervalSinceDate:_requestStart];
 	[self.durations addObject: [[NSNumber alloc] initWithDouble:self.requestDuration]];
 
@@ -69,14 +58,11 @@
 	{
 		NSLog(@"Trial = %i", i);
 		NSLog(@"Duration = %f", [[self.durations objectAtIndex:i]doubleValue]);
-		NSLog(@"ServerTime = %f", [[self.serverTimestampsArray objectAtIndex:i]doubleValue]);
-		
 		average = average + [[self.durations objectAtIndex:i]doubleValue];
 	}
 	average = average/(self.j-2);
 	self.requestDuration = average;
-	self.serverTimeSinceEpoch = [[self.serverTimestampsArray objectAtIndex:(self.j-1)]doubleValue];
-	self.timeToWait = 10.0 - fmod(self.serverTimeSinceEpoch + self.requestDuration/2.0, 10.0);
+	self.timeToWait = 10.0 - fmod(([self.serverTime doubleValue]/1000000000) + self.requestDuration/2.0, 10.0);
 
 }
 - (void)applicationWillResignActive:(UIApplication *)application
